@@ -21,11 +21,11 @@ class ArrayField(models.Field):
     def __init__(self, of=models.IntegerField, **kwargs):
         # The `of` argument is a bit tricky once we need compatibility
         # with South.
-        # 
+        #
         # South can't store a field, and the eval it performs doesn't
         # put enough things in the context to use South's internal
         # "get field" function (`BaseMigration.gf`).
-        # 
+        #
         # Therefore, we need to be able to accept a South triple of our
         # sub-field and hook into South to get the correct thing back.
         if isinstance(of, tuple) and south_installed:
@@ -52,10 +52,12 @@ class ArrayField(models.Field):
         return
 
     def create_type_sql(self, connection, style=no_style(),
-                                          only_if_not_exists=False ):
+                        only_if_not_exists=False):
         if hasattr(self.of, 'create_type_sql'):
-            return self.of.create_type_sql(connection, style,
-                                        only_if_not_exists=only_if_not_exists)
+            return self.of.create_type_sql(
+                connection,
+                style,
+                only_if_not_exists=only_if_not_exists)
         return ''
 
     def db_type(self, connection):
@@ -88,8 +90,7 @@ class ArrayField(models.Field):
             return 'ARRAY_LENGTH({field}, 1) IS NULL'
 
     def get_db_prep_lookup(self, lookup_type, value, connection,
-                            prepared=False):
-
+                           prepared=False):
         # Handle our special case: We don't want the "%" adding
         # to `contains` that comes with the Django stock implementation;
         # this is an array presence check, not a full text search.
@@ -133,7 +134,7 @@ class ArrayField(models.Field):
                 raise TypeError('__len only supports integers.')
 
         # Arrays do not support many built-in lookups.
-        if lookup_type not in ('exact', 'contains'):
+        if lookup_type not in ('exact', 'contains', 'isnull'):
             raise TypeError('Unsupported lookup type: %s' % lookup_type)
 
         # If we're checking on a list, coerce each individual value into
